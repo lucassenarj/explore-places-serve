@@ -1,5 +1,8 @@
 'use strict'
 
+const Property = use('App/Models/Property')
+const Image = use('App/Models/Image')
+
 /**
  * Resourceful controller for interacting with properties
  */
@@ -8,14 +11,10 @@ class PropertyController {
    * Show a list of all properties.
    * GET properties
    */
-  async index ({ request, response, view }) {
-  }
+  async index () {
+    const properties = await Property.all()
 
-  /**
-   * Render a form to be used for creating a new property.
-   * GET properties/create
-   */
-  async create ({ request, response, view }) {
+    return properties
   }
 
   /**
@@ -23,20 +22,44 @@ class PropertyController {
    * POST properties
    */
   async store ({ request, response }) {
+    const data = request.only([
+      "user_id",
+      "title",
+      "address",
+      "price",
+      "latitude",
+      "longitude"
+    ])
+
+    let arrImages = request.only([
+      "images",
+      "images.*.property_id",
+      "images.*.path"
+    ])
+
+    try {
+      const property = await Property.create(data)
+  
+      const createdImages = await arrImages.images.map((items) => {
+        Image.create(property.id, items.path)
+      })
+      
+      return createdImages
+    } catch (error) {
+      return response.status(401).send({error: error})
+    }
   }
 
   /**
    * Display a single property.
    * GET properties/:id
    */
-  async show ({ params, request, response, view }) {
-  }
+  async show ({ params }) {
+    const property = await Property.findOrFail(params.id)
 
-  /**
-   * Render a form to update an existing property.
-   * GET properties/:id/edit
-   */
-  async edit ({ params, request, response, view }) {
+    await property.load('images')
+
+    return property
   }
 
   /**
@@ -50,7 +73,14 @@ class PropertyController {
    * Delete a property with id.
    * DELETE properties/:id
    */
-  async destroy ({ params, request, response }) {
+  async destroy ({ params, auth, response }) {
+    const property = await Property.findOrFail(params.id)
+
+    if (property.user_id !== auth.user.id) {
+      return response.status(401).send({error: 'Not authorized'})
+    }
+
+    await property.delete()
   }
 }
 
