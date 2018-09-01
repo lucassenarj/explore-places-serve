@@ -56,19 +56,19 @@ class PropertyController {
    */
   async update ({ params, request, response }) {
     const property = await Property.findOrFail(params.id)
-
+    
     const data = request.only([
       'title',
       'address',
       'latitude',
       'longitude',
-      'prince'
+      'price'
     ])
 
     property.merge(data)
 
     await property.save()
-
+  
     return property
   }
 
