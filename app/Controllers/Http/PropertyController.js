@@ -1,7 +1,6 @@
 'use strict'
 
 const Property = use('App/Models/Property')
-const Image = use('App/Models/Image')
 
 /**
  * Resourceful controller for interacting with properties
@@ -31,23 +30,10 @@ class PropertyController {
       "longitude"
     ])
 
-    let arrImages = request.only([
-      "images",
-      "images.*.property_id",
-      "images.*.path"
-    ])
-
-    try {
-      const property = await Property.create(data)
   
-      const createdImages = await arrImages.images.map((items) => {
-        Image.create(property.id, items.path)
-      })
-      
-      return createdImages
-    } catch (error) {
-      return response.status(401).send({error: error})
-    }
+    const property = await Property.create(data)
+    
+    return property
   }
 
   /**
