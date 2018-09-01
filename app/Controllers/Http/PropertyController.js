@@ -10,8 +10,10 @@ class PropertyController {
    * Show a list of all properties.
    * GET properties
    */
-  async index () {
-    const properties = await Property.all()
+  async index ({ request }) {
+    const { latitude, longitude } = request.all()
+
+    const properties = Property.query().nearBy(latitude, longitude, 10).fetch()
 
     return properties
   }
@@ -20,7 +22,7 @@ class PropertyController {
    * Create/save a new property.
    * POST properties
    */
-  async store ({ request, response }) {
+  async store ({ request }) {
     const data = request.only([
       "user_id",
       "title",
