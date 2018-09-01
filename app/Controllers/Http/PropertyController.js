@@ -22,9 +22,10 @@ class PropertyController {
    * Create/save a new property.
    * POST properties
    */
-  async store ({ request }) {
+  async store ({ auth, request, response }) {
+    const { id } = auth.user
+
     const data = request.only([
-      "user_id",
       "title",
       "address",
       "price",
@@ -32,8 +33,7 @@ class PropertyController {
       "longitude"
     ])
 
-  
-    const property = await Property.create(data)
+    const property = await Property.create({...data, user_id: id})
     
     return property
   }
@@ -55,6 +55,21 @@ class PropertyController {
    * PUT or PATCH properties/:id
    */
   async update ({ params, request, response }) {
+    const property = await Property.findOrFail(params.id)
+
+    const data = request.only([
+      'title',
+      'address',
+      'latitude',
+      'longitude',
+      'prince'
+    ])
+
+    property.merge(data)
+
+    await property.save()
+
+    return property
   }
 
   /**
