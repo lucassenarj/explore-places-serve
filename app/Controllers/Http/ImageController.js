@@ -9,7 +9,7 @@ class ImageController {
    * * Create/save a new image
    * POST images
    */
-  async store ({ request }) {
+  async store ({ params, request }) {
     const property = await Property.findOrFail(params.id)
 
     const images = request.file('image', {
@@ -25,9 +25,17 @@ class ImageController {
       return images.errors()
     }
 
-    await Promisse.all(
-      images.movedList().map(image => property.images().create({ path: images.fileName }))
+    await Promise.all(
+      images.movedList().map(image => property.images().create({ path: image.fileName }))
     )
+  }
+
+  /**
+   * Display a single image.
+   * GET images/:id
+   */
+  async show ({ params, response }) {
+    return response.download(Helpers.tmpPath(`uploads/${params.path}`))
   }
 }
 
